@@ -18,7 +18,7 @@ class MenuItem(models.Model):
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="cart")
     items_count = models.PositiveSmallIntegerField()
-    total_price = models.DecimalField(max_digits=6, decimal_places=2)()
+    total_price = models.DecimalField(max_digits=6, decimal_places=2)
     menu_items = models.ManyToManyField(
         MenuItem, 
         through="CartItem", 

@@ -16,7 +16,7 @@ class MenuItem(models.Model):
         indexes = [models.Index(fields=["price", "title", "featured"])]
 
 class Cart(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="cart")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="cart", primary_key=True)
     items_count = models.PositiveSmallIntegerField()
     total_price = models.DecimalField(max_digits=6, decimal_places=2)
     menu_items = models.ManyToManyField(
@@ -30,6 +30,9 @@ class CartItem(models.Model):
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
     quantity = models.PositiveSmallIntegerField()
 
+    class Meta:
+        unique_together = ["cart", "menu_item"]
+
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
@@ -37,6 +40,9 @@ class Order(models.Model):
     status = models.BooleanField(default=0)
     total = models.DecimalField(max_digits=6, decimal_places=2)   
     date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['status', 'date'])]
 
 
 class OrderItem(models.Model):

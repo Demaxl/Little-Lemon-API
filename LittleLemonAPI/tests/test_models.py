@@ -19,3 +19,8 @@ class OrderTestCase(TestCase):
         cls.cart = Cart.objects.create(
             user=cls.user
         )
+
+    def testCart(self):
+        self.cart.menu_items.add(self.menuitem)
+
+        self.assertEqual(CartItem.objects.get(menu_item=self.menuitem).cart, self.cart)

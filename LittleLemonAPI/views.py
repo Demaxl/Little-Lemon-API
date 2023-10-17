@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 
 from django.contrib.auth.models import User, Group
 from .models import Category, Cart, CartItem, MenuItem, Order, OrderItem
-from .serializers import MenuItemSerializer, UserSerializer, CategorySerializer
+from .serializers import MenuItemSerializer, UserSerializer, CategorySerializer,  CartSerializer
 from .permissions import IsManager
 
 
@@ -58,4 +59,20 @@ class GroupViewSet(ViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class CartView(generics.ListCreateAPIView):
+    # queryset = CartItem.objects.select_related("menu_item")
+    queryset = Cart.objects.all()#select_related("menu_items").all()
+    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # return CartItem.objects.filter(cart__user=self.request.user)
+        return Cart.objects.filter(user=self.request.user)#.select_related("cart_items").all()
+    
+
+    # def create(self, request, *args, **kwargs):
+    #     menuitem = request.data.get("menuitem")
+
+    #     if not menuitem:
+    #         return Response({"menuitem_id": "This field is required"})
 

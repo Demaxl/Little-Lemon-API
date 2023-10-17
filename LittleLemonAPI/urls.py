@@ -13,6 +13,7 @@ urlpatterns = [
         "get": "list",
         "post": "create" }), name="managers"),
     path("groups/<slug:group>/users/<str:username>", views.GroupViewSet.as_view({"delete":"removeUser"}), name="managers"),
+    path("cart/menu-items", views.CartView.as_view())
 
 
 ]

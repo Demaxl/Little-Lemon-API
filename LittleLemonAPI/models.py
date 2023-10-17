@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 
 class Category(models.Model):
@@ -10,13 +12,14 @@ class Category(models.Model):
     
 class MenuItem(models.Model):
     title = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=6, decimal_places=2)
+    price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(1)])
     featured = models.BooleanField(default=False)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="menu_items")
 
     def __str__(self):
         return self.title
 
+    
     class Meta:
         indexes = [models.Index(fields=["price", "title", "featured"])]
 
@@ -31,9 +34,9 @@ class Cart(models.Model):
         return f"{self.user}'s cart"
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="cart_items")
     menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField(default=1)
+    quantity = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
 
     def __str__(self) -> str:
         return f"{self.menu_item} in {self.cart}"
@@ -60,7 +63,15 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="order_items")
     menu_item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField()
+    quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
 
     def __str__(self) -> str:
         return f"Order Item in {self.user}'s order"
+    
+
+"""
+from LittleLemonAPI.models import *
+from LittleLemonAPI.serializers import * 
+from django.contrib.auth.models import User, Group
+user = User.objects.get(username="sana")
+"""

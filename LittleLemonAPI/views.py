@@ -29,7 +29,7 @@ class GroupViewSet(ViewSet):
 
     def list(self, request, group):
         group = group.replace("-", " ")
-        queryset = Group.objects.get(name__iexact=group).user_set.all()
+        queryset = get_object_or_404(Group, name__iexact=group).user_set.all()
         serializer = UserSerializer(queryset, many=True)
         return Response(serializer.data)
     
@@ -41,7 +41,7 @@ class GroupViewSet(ViewSet):
         
         if username:
             user = get_object_or_404(User, username=username)
-            group = Group.objects.get(name__iexact=group)
+            group = get_object_or_404(Group, name__iexact=group)
             user.groups.add(group)
             user.save()
             return Response({"success":"ok"}, status=status.HTTP_201_CREATED)
@@ -51,9 +51,8 @@ class GroupViewSet(ViewSet):
 
     def removeUser(self, request, group, username):
         group = group.replace("-", " ")
-        print(group)
         user = get_object_or_404(User, username=username)
-        manager = Group.objects.get(name__iexact=group)
+        manager = get_object_or_404(Group, name__iexact=group)
         user.groups.remove(manager)
 
         return Response(status=status.HTTP_204_NO_CONTENT)

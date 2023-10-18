@@ -70,9 +70,8 @@ class CartView(generics.ListCreateAPIView):
         return Cart.objects.filter(user=self.request.user)#.select_related("cart_items").all()
     
 
-    # def create(self, request, *args, **kwargs):
-    #     menuitem = request.data.get("menuitem")
+    def delete(self, request):
+        CartItem.objects.filter(cart__user=request.user).delete()
+        return Response()
 
-    #     if not menuitem:
-    #         return Response({"menuitem_id": "This field is required"})
-
+    

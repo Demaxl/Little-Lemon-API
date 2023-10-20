@@ -83,8 +83,6 @@ class CartSerializer(serializers.ModelSerializer):
         user.cart.save()
         return user.cart
 
-        
-    
 
     def countItems(self, cart: Cart):
         return len(cart.menu_items.all())
@@ -96,3 +94,40 @@ class CartSerializer(serializers.ModelSerializer):
             price += (cartitem.quantity * cartitem.menu_item.price)
         
         return price
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    menu_item = MenuItemSerializer(context={"exclude_category":True})
+    
+    class Meta:
+        model = OrderItem
+        fields = ["quantity", "menu_item"]
+
+class OrderSerializer(serializers.ModelSerializer):
+    order_id = serializers.IntegerField(source="id", read_only=True)
+    user = serializers.SlugRelatedField(
+        queryset = User.objects.all(),
+        default=serializers.CurrentUserDefault(),
+        slug_field="username")
+    
+    delivery_crew = serializers.SlugRelatedField(
+        queryset = Group.objects.get(name="Delivery Crew").user_set.all(),
+        slug_field="username",
+        required=False)
+    
+    total = serializers.DecimalField(max_digits=6, decimal_places=2, read_only=True)
+    
+    order_items = OrderItemSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Order
+        fields = ["order_id","user", "delivery_crew", "status", "total", "date", "order_items"]
+
+    def validate(self, attrs):
+        user = attrs['user']
+
+        if user.cart.cart_items.count() == 0:
+            raise serializers.ValidationError("User has no items in the cart")
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        return super().create(validated_data)

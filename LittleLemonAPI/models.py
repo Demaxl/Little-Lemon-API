@@ -48,17 +48,24 @@ class CartItem(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
-    delivery_crew = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="delivery_crew", null=True)
-    status = models.BooleanField(default=0)
-    total = models.DecimalField(max_digits=6, decimal_places=2)   
+    delivery_crew = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="delivery_crew", null=True, blank=True)
+    status = models.BooleanField(default=False)
+    total = models.DecimalField(max_digits=6, decimal_places=2, editable=False)   
     date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self) -> str:
-        return f"Order by {self.user}"
 
     class Meta:
         indexes = [models.Index(fields=['status', 'date'])]
 
+    def __str__(self) -> str:
+        return f"Order by {self.user}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            price = 0
+            for cartitem in self.user.cart.cart_items.all():
+                price += (cartitem.quantity * cartitem.menu_item.price)
+            self.total = price
+        super().save(*args, **kwargs)
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="order_items")
@@ -66,7 +73,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
 
     def __str__(self) -> str:
-        return f"Order Item in {self.user}'s order"
+        return f"Order Item in {self.order.user}'s order"
     
 
 """
